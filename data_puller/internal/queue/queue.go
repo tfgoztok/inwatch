@@ -3,6 +3,8 @@ package queue
 import (
 	"context"
 	"time"
+
+	"data_puller/internal/model"
 )
 
 // Work represents a unit of work to be processed, containing a device and a query.

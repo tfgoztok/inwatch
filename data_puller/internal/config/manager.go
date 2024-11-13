@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"inwatch/internal/model"
+	"data_puller/internal/model"
 
 	"github.com/lib/pq"
 )
