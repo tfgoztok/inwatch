@@ -126,6 +126,7 @@ go build -o data_puller ./cmd/main.go
 - [ ] Implement secure protocol versions (SNMPv3)
 
 ## Current Arthitecture
+```mermaid
 flowchart TD
     subgraph Docker ["Docker Environment"]
         subgraph DataPuller ["Data Puller Service"]
@@ -183,3 +184,4 @@ flowchart TD
     class WorkQueue,RateLimit,RetryPolicy secondary
     class Database,Devices,Queries,Configs database
     class SNMPDev,OtherDev external
+```
