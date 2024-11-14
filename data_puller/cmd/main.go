@@ -11,11 +11,40 @@ import (
 
 	"data_puller/internal/collector"
 	"data_puller/internal/config"
+	"data_puller/internal/database"
 	"data_puller/internal/model"
 	"data_puller/internal/protocol/snmp"
 )
 
+func initSchema() error {
+	// Create migration manager
+	mgr := database.NewMigrationManager(
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+	)
+
+	// Run migrations
+	if err := mgr.Run(); err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	return nil
+}
+
 func main() {
+	// Initialize schema
+	log.Println("Running database migrations...")
+	if err := initSchema(); err != nil {
+		log.Printf("Warning: Migration error: %v", err)
+		// Continue execution as the schema might already exist
+	}
+
+	// Wait a bit for PostgreSQL to be fully ready after migrations
+	time.Sleep(1 * time.Second)
+
 	// Create context with cancellation
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel() // Ensure cancellation on function exit
