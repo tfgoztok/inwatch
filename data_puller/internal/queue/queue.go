@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -62,10 +63,21 @@ func (q *WorkQueue) worker(ctx context.Context, id int) {
 		case <-ctx.Done():
 			return
 		case work := <-q.workChan:
-			// İşi gerçekleştirecek handler'a gönder
-			// Bu kısım Collector tarafından implement edilecek
+			// Gelecekte burada iş işleme mantığı eklenebilir
+			// Şu an için Collector bu işi yapıyor
+			if work == nil {
+				log.Printf("Worker %d received nil work", id)
+				continue
+			}
+			log.Printf("Worker %d processing work for device %d, parameter %s",
+				id, work.Device.ID, work.Query.ParameterName)
 		}
 	}
+}
+
+// WorkChan returns the channel for receiving work items.
+func (q *WorkQueue) WorkChan() <-chan *Work {
+	return q.workChan
 }
 
 // scheduler checks for scheduled work and enqueues it for processing.

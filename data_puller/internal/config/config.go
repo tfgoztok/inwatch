@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"data_puller/internal/model"
 )
 
 // ConfigManager defines the methods for managing configuration changes.

@@ -87,7 +87,7 @@ func (c *Collector) handleWork(ctx context.Context, work *queue.Work) {
 	// Get handler for protocol
 	c.mu.RLock()
 	handler, exists := c.handlers[work.Device.Protocol]
-	deviceConfig := c.configs[work.Device.ID]
+	//deviceConfig := c.configs[work.Device.ID]
 	c.mu.RUnlock()
 
 	if !exists {

@@ -11,6 +11,7 @@ import (
 
 	"data_puller/internal/collector"
 	"data_puller/internal/config"
+	"data_puller/internal/model"
 	"data_puller/internal/protocol/snmp"
 )
 

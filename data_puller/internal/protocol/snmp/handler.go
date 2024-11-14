@@ -8,6 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"data_puller/internal/model"
+	"data_puller/internal/protocol"
+
 	"github.com/gosnmp/gosnmp"
 )
 

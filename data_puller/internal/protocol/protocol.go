@@ -1,6 +1,9 @@
 package protocol
 
-import "context"
+import (
+	"context"
+	"data_puller/internal/model"
+)
 
 // QueryResult represents the result of a query to a device.
 type QueryResult struct {

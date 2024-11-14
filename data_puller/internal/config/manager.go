@@ -14,16 +14,16 @@ import (
 	"github.com/lib/pq"
 )
 
-// ConfigManager manages the configuration for devices, including database connections and change notifications.
-type ConfigManager struct {
+// dbConfigManager implements dbConfigManager interface.
+type dbConfigManager struct {
 	db       *sql.DB           // Database connection
 	listener *pq.Listener      // PostgreSQL listener for notifications
 	changes  chan ConfigChange // Channel to send configuration changes
 	mu       sync.RWMutex      // Mutex for concurrent access
 }
 
-// NewConfigManager initializes a new ConfigManager with a database connection.
-func NewConfigManager(dsn string) (*ConfigManager, error) {
+// NewConfigManager initializes a new dbConfigManager with a database connection.
+func NewConfigManager(dsn string) (*dbConfigManager, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -45,7 +45,7 @@ func NewConfigManager(dsn string) (*ConfigManager, error) {
 			}
 		})
 
-	return &ConfigManager{
+	return &dbConfigManager{
 		db:       db,
 		listener: listener,
 		changes:  make(chan ConfigChange, 100), // Buffered channel for changes
@@ -53,7 +53,7 @@ func NewConfigManager(dsn string) (*ConfigManager, error) {
 }
 
 // Initialize starts listening for configuration changes.
-func (m *ConfigManager) Initialize(ctx context.Context) error {
+func (m *dbConfigManager) Initialize(ctx context.Context) error {
 	if err := m.listener.Listen("config_changes"); err != nil {
 		return fmt.Errorf("failed to start listening: %w", err)
 	}
@@ -73,7 +73,7 @@ type dbNotification struct {
 }
 
 // processNotifications listens for and processes database notifications.
-func (m *ConfigManager) processNotifications(ctx context.Context) {
+func (m *dbConfigManager) processNotifications(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -149,7 +149,7 @@ func (m *ConfigManager) processNotifications(ctx context.Context) {
 }
 
 // GetDevices retrieves all active devices from the database.
-func (m *ConfigManager) GetDevices(ctx context.Context) ([]*model.Device, error) {
+func (m *dbConfigManager) GetDevices(ctx context.Context) ([]*model.Device, error) {
 	query := `
         SELECT id, name, ip, port, protocol, status
         FROM devices
@@ -183,7 +183,7 @@ func (m *ConfigManager) GetDevices(ctx context.Context) ([]*model.Device, error)
 }
 
 // GetDeviceQueries retrieves all enabled queries for a specific device.
-func (m *ConfigManager) GetDeviceQueries(ctx context.Context, deviceID int64) ([]*model.DeviceQuery, error) {
+func (m *dbConfigManager) GetDeviceQueries(ctx context.Context, deviceID int64) ([]*model.DeviceQuery, error) {
 	query := `
         SELECT id, device_id, query_string, parameter_name, data_type, poll_interval, enabled
         FROM device_queries
@@ -218,7 +218,7 @@ func (m *ConfigManager) GetDeviceQueries(ctx context.Context, deviceID int64) ([
 }
 
 // GetDeviceConfig retrieves the configuration for a specific device.
-func (m *ConfigManager) GetDeviceConfig(ctx context.Context, deviceID int64) (map[string]string, error) {
+func (m *dbConfigManager) GetDeviceConfig(ctx context.Context, deviceID int64) (map[string]string, error) {
 	query := `
         SELECT config_key, config_value
         FROM device_configs
@@ -244,12 +244,12 @@ func (m *ConfigManager) GetDeviceConfig(ctx context.Context, deviceID int64) (ma
 }
 
 // WatchChanges returns a channel to receive configuration change notifications.
-func (m *ConfigManager) WatchChanges(ctx context.Context) (<-chan ConfigChange, error) {
+func (m *dbConfigManager) WatchChanges(ctx context.Context) (<-chan ConfigChange, error) {
 	return m.changes, nil // Return the changes channel
 }
 
 // Close cleans up resources and closes the database connection.
-func (m *ConfigManager) Close() error {
+func (m *dbConfigManager) Close() error {
 	if err := m.listener.Close(); err != nil {
 		log.Printf("Error closing listener: %v", err)
 	}
